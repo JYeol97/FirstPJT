@@ -1,72 +1,65 @@
-from .models import Movie, Actor, Review
-from .serializers import ReviewDetailSerializers, ReviewCreateSerializers, MovieSerializers, ActorSerializers, ReviewSerializers, ActorDetailSerializers, MovieDetailSerializers
-from rest_framework import serializers, status
+from functools import partial
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.decorators import api_view
+from .serializers import MovieSerializer, MovieListSerializer, ActorListSerializer, ActorSerializer, ReviewListSerializer, ReviewSerializer, ReviewDetailSerializer, ReviewCreateSerializer
+from .models import Movie, Actor, Review
+from movies import serializers
 
 # Create your views here.
 @api_view(['GET'])
 def actor_list(request):
-    if request.method == 'GET':
-        actors = Actor.objects.all()
-        serializer = ActorSerializers(actors, many=True)
-        return Response(serializer.data)
-    
+    actors = Actor.objects.all()
+    serializer = ActorListSerializer(actors, many=True)
+    return Response(serializer.data)
+
 @api_view(['GET'])
-def actor_detail(request, pk):
-    if request.method =='GET':
-        actor = Actor.objects.get(pk=pk)
-        serializer = ActorDetailSerializers(actor)
-        return Response(serializer.data)
-    
+def actor_detail(request, actor_pk):
+    actor = Actor.objects.get(pk=actor_pk)
+    serializer = ActorSerializer(actor)
+    return Response(serializer.data)
 
 @api_view(['GET'])
 def movie_list(request):
-    if request.method == 'GET':
-        movie = Movie.objects.all()
-        serializer = MovieSerializers(movie, many=True)
-        return Response(serializer.data)
+    movies = Movie.objects.all()
+    serializer = MovieListSerializer(movies, many=True)
+    return Response(serializer.data)
 
 @api_view(['GET'])
-def movie_detail(request, pk):
-    if request.method == 'GET':
-        movie = Movie.objects.get(pk=pk)
-        serializer = MovieDetailSerializers(movie)
-        return Response(serializer.data)
+def movie_detail(request, movie_pk):
+    movie = Movie.objects.get(pk=movie_pk)
+    serializer = MovieSerializer(movie)
+    return Response(serializer.data)
 
 @api_view(['GET'])
 def review_list(request):
-    if request.method == 'GET':
-        review = Review.objects.all()
-        serializer = ReviewSerializers(review, many=True)
-        return Response(serializer.data)
+    reviews = Review.objects.all()
+    serializer = ReviewListSerializer(reviews, many=True)
+    return Response(serializer.data)
 
-@api_view(['GET','PUT','DELETE'])
-def review_detail(request,pk):
-    review = Review.objects.get(pk=pk)
+@api_view(['GET', 'PUT', 'DELETE'])
+def review_detail(request, review_pk):
+    review = Review.objects.get(pk=review_pk)
     if request.method == 'GET':
-        serializer = ReviewSerializers(review)
+        serializer = ReviewSerializer(review)
         return Response(serializer.data)
-        
-    if request.method == 'PUT':
-        serializer = ReviewDetailSerializers(review, data = request.data, partial=True)
+    elif request.method == 'PUT':
+        serializer = ReviewDetailSerializer(review, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    if request.method == 'DELETE':
+    elif request.method == 'DELETE':
         review.delete()
         context = {
-         'message': f'review {pk} is deleted.'   
+            'message': f'review {review_pk} is deleted.'
         }
         return Response(context, status=status.HTTP_204_NO_CONTENT)
 
+
 @api_view(['POST'])
-def create_review(request,pk):
-    if request.method == 'POST':
-        movie = Movie.objects.get(pk=pk)
-        serializer = ReviewCreateSerializers(data = request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save(movie=movie)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+def create_review(request, movie_pk):
+    movie = Movie.objects.get(pk=movie_pk)
+    serializer = ReviewCreateSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save(movie=movie)
+        return Response(serializer.data)

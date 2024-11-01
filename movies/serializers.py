@@ -1,75 +1,80 @@
-from dataclasses import field
-from .models import Movie,Actor,Review
+
+from dataclasses import fields
 from rest_framework import serializers
+from .models import Actor, Movie, Review
 
-class MovieSerializers(serializers.ModelSerializer):
-    class Meta:
-        model = Movie
-        fields = ('title','overview')
-
-class ActorSerializers(serializers.ModelSerializer):
+class ActorListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Actor
         fields = '__all__'
 
-class ReviewSerializers(serializers.ModelSerializer):
-    class Meta:
-        model = Review
-        fields = '__all__'
 
-class ReviewDetailSerializers(serializers.ModelSerializer):
-    class ReviewMovieSerializers(serializers.ModelSerializer):
-        class Meta:
-            model = Movie
-            fields = ('title',)
-    movie = ReviewMovieSerializers()
-    class Meta:
-        model = Review
-        fields = '__all__'
-
-
-
-# 아래 두개는 디테일과 관련된 직렬화
-# ActorMoviesSerializers는 영화중 title만 가져오고 
-# ActorDetailSerializers는 title중 actors_movies(역참조)에 해당하는 것만
-# 추려서 넣어줌
-class ActorMoviesSerializers(serializers.ModelSerializer):
+class MovietitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
         fields = ('title',)
 
-class ActorDetailSerializers(serializers.ModelSerializer):
-    movies = ActorMoviesSerializers(many = True, read_only=True)
+
+class ActorSerializer(serializers.ModelSerializer):
+    movies = MovietitleSerializer(many=True)
     class Meta:
         model = Actor
-        fields = ('id','name','movies')
+        fields = ['id', 'name', 'movies']
 
-class MovieDetailSerializers(serializers.ModelSerializer):
-    class ActorNameSerializers(serializers.ModelSerializer):
+
+class MovieListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Movie
+        fields = ('title', 'overview',)
+        
+class MovieSerializer(serializers.ModelSerializer):
+    class AcotrNameSerializer(serializers.ModelSerializer):
         class Meta:
             model = Actor
             fields = ('name',)
     
-    class MovieReviewsSerializers(serializers.ModelSerializer):
+
+    class MovieReviewsSerializer(serializers.ModelSerializer):
         class Meta:
             model = Review
-            fields = '__all__'
-    actors = ActorNameSerializers(many = True)
-    review_set = MovieReviewsSerializers(many=True)
+            fields = ('title', 'content',)
+
+    actors = AcotrNameSerializer(many=True)
+    review_set = MovieReviewsSerializer(many=True)
+
     class Meta:
         model = Movie
         fields = '__all__'
 
-class ReviewCreateSerializers(serializers.ModelSerializer):
-    class ReviewMovieSerializers(serializers.ModelSerializer):
+
+class ReviewListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ('title', 'content',)
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = '__all__'
+
+class ReviewDetailSerializer(serializers.ModelSerializer):
+    class MovieTitleNameSerializer(serializers.ModelSerializer):
         class Meta:
             model = Movie
             fields = ('title',)
-    movie = ReviewMovieSerializers(read_only=True)
+
+    movie = MovieTitleNameSerializer()
     class Meta:
         model = Review
-        fields = ('id','movie',"title","content")
+        fields = '__all__'
 
-'''
-ㅋㅋ
-'''
+class ReviewCreateSerializer(serializers.ModelSerializer):
+    class MovieInfoSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Movie
+            fields = ('title',)
+    movie = MovieInfoSerializer(read_only=True)
+    class Meta:
+        model = Review
+        fields = ('id', 'movie', 'title', 'content',)
