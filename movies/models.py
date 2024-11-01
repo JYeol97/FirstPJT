@@ -17,6 +17,6 @@ class Movie(models.Model):
     actors = models.ManyToManyField('Actor', related_name='actors_movies')
 
 class Review(models.Model):
-    movie = models.ForeignKey('Movie', on_delete=models.CASCADE)
+    movie = models.ForeignKey('Movie', on_delete=models.CASCADE, related_name='movies_reviews')
     title = models.TextField()
     content = models.TextField()
