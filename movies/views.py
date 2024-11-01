@@ -1,6 +1,6 @@
 from .models import Movie, Actor, Review
-from .serializers import MovieSerializers, ActorSerializers, ReviewSerializers, ActorDetailSerializers, MovieDetailSerializers
-from rest_framework import serializers
+from .serializers import ReviewDetailSerializers, ReviewCreateSerializers, MovieSerializers, ActorSerializers, ReviewSerializers, ActorDetailSerializers, MovieDetailSerializers
+from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
@@ -43,19 +43,30 @@ def review_list(request):
 
 @api_view(['GET','PUT','DELETE'])
 def review_detail(request,pk):
+    review = Review.objects.get(pk=pk)
     if request.method == 'GET':
-        review = Review.objects.get(pk=pk)
-        serializer = ReviewSerializers(review, many=True)
+        serializer = ReviewSerializers(review)
         return Response(serializer.data)
         
     if request.method == 'PUT':
-        
-        pass
-    if request.method == 'DLETE':
-        pass
+        serializer = ReviewDetailSerializers(review, data = request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    if request.method == 'DELETE':
+        review.delete()
+        context = {
+         'message': f'review {pk} is deleted.'   
+        }
+        return Response(context, status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['POST'])
-def create_review(request):
+def create_review(request,pk):
     if request.method == 'POST':
-        pass
-    
+        movie = Movie.objects.get(pk=pk)
+        serializer = ReviewCreateSerializers(data = request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save(movie=movie)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

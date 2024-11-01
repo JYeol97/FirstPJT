@@ -17,6 +17,16 @@ class ReviewSerializers(serializers.ModelSerializer):
         model = Review
         fields = '__all__'
 
+class ReviewDetailSerializers(serializers.ModelSerializer):
+    class ReviewMovieSerializers(serializers.ModelSerializer):
+        class Meta:
+            model = Movie
+            fields = ('title',)
+    movie = ReviewMovieSerializers()
+    class Meta:
+        model = Review
+        fields = '__all__'
+
 
 
 # 아래 두개는 디테일과 관련된 직렬화
@@ -44,8 +54,22 @@ class MovieDetailSerializers(serializers.ModelSerializer):
         class Meta:
             model = Review
             fields = '__all__'
-    actors = ActorNameSerializers(many = True, read_only=True)
-    reviews = MovieReviewsSerializers(many=True, read_only=True)
+    actors = ActorNameSerializers(many = True)
+    review_set = MovieReviewsSerializers(many=True)
     class Meta:
         model = Movie
         fields = '__all__'
+
+class ReviewCreateSerializers(serializers.ModelSerializer):
+    class ReviewMovieSerializers(serializers.ModelSerializer):
+        class Meta:
+            model = Movie
+            fields = ('title',)
+    movie = ReviewMovieSerializers(read_only=True)
+    class Meta:
+        model = Review
+        fields = ('id','movie',"title","content")
+
+'''
+ㅋㅋ
+'''
